@@ -10,7 +10,7 @@ import (
 const (
 	KAFKA_CONF_BOOTSTRAP_SERVERS = "bootstrap.servers"
 
-	LOGGER_PREFIX string = "[bcowtech/kafka] "
+	LOGGER_PREFIX string = "[bcowtech/lib-kafka] "
 
 	PartitionAny = kafka.PartitionAny
 )

@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 	"time"
@@ -120,7 +119,7 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 						consumer.Unassign()
 
 					case kafka.PartitionEOF:
-						log.Printf("%% Notice: Reached %v\n", e)
+						logger.Printf("%% Notice: Reached %v\n", e)
 
 					case *kafka.Message:
 						c.processMessage(worker, e)
@@ -129,7 +128,7 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 						switch e.Code() {
 						case kafka.ErrUnknownTopic, kafka.ErrUnknownTopicOrPart:
 							if !c.processKafkaError(e) {
-								log.Fatalf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
+								logger.Fatalf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
 							}
 
 						/* NOTE: https://github.com/edenhill/librdkafka/issues/64
@@ -145,7 +144,7 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 						*/
 						case kafka.ErrTransport:
 							if !c.processKafkaError(e) {
-								log.Printf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
+								logger.Printf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
 							}
 							continue
 						case kafka.ErrAllBrokersDown,
@@ -154,18 +153,18 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 							kafka.ErrCritSysResource,
 							kafka.ErrFs,
 							kafka.ErrBadMsg:
-							log.Fatalf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
+							logger.Fatalf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
 
 						default:
 							if !c.processKafkaError(e) {
-								log.Printf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
+								logger.Printf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
 							}
 							return
 						}
 					default:
 						// TODO: catch GroupCoordinator: Disconnected (after %dms in state UP)
-						log.Printf("%% Notice: Ignored %v\n", e)
-						log.Printf("%% Notice: Ignored %#v\n", e)
+						logger.Printf("%% Notice: Ignored %v\n", e)
+						logger.Printf("%% Notice: Ignored %#v\n", e)
 					}
 				}
 			}

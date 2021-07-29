@@ -10,7 +10,13 @@ import (
 const (
 	KAFKA_CONF_BOOTSTRAP_SERVERS = "bootstrap.servers"
 
+	LOGGER_PREFIX string = "[bcowtech/kafka] "
+
 	PartitionAny = kafka.PartitionAny
+)
+
+var (
+	logger *log.Logger = log.New(os.Stdout, LOGGER_PREFIX, log.LstdFlags|log.Lmsgprefix)
 )
 
 type (
@@ -31,9 +37,3 @@ type (
 type (
 	ForwarderOption = ProducerOption
 )
-
-func init() {
-	log.SetOutput(os.Stdout)
-	log.SetPrefix("[bcowtech/kafka] ")
-	log.SetFlags(log.LstdFlags | log.LUTC | log.Lmicroseconds | log.Llongfile | log.Lmsgprefix)
-}

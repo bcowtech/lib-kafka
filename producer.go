@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"log"
 	"strings"
 	"time"
 
@@ -140,7 +139,7 @@ func (p *Producer) initEventLoop() {
 					switch e.Code() {
 					case kafka.ErrUnknownTopic, kafka.ErrUnknownTopicOrPart:
 						if !p.handleError(e) {
-							log.Fatalf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
+							logger.Fatalf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
 						}
 
 					/* NOTE: https://github.com/edenhill/librdkafka/issues/64
@@ -156,7 +155,7 @@ func (p *Producer) initEventLoop() {
 					*/
 					case kafka.ErrTransport:
 						if !p.handleError(e) {
-							log.Printf(" %% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
+							logger.Printf(" %% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
 						}
 
 					case kafka.ErrAllBrokersDown,
@@ -165,11 +164,11 @@ func (p *Producer) initEventLoop() {
 						kafka.ErrCritSysResource,
 						kafka.ErrFs,
 						kafka.ErrBadMsg:
-						log.Fatalf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
+						logger.Fatalf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
 
 					default:
 						if !p.handleError(e) {
-							log.Printf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
+							logger.Printf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
 						}
 						return
 					}
@@ -190,12 +189,12 @@ func (p *Producer) initEventLoop() {
 							}
 							continue
 						}
-						log.Printf("%% Error: (%s) (%T): %[2]v\n",
+						logger.Printf("%% Error: (%s) (%T): %[2]v\n",
 							e.TopicPartition,
 							e.TopicPartition.Error)
 					}
 				default:
-					log.Printf("%% Notice: Ignored %v\n", e)
+					logger.Printf("%% Notice: Ignored %v\n", e)
 				}
 				break
 			}

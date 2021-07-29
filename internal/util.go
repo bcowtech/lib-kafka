@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"log"
 	"net"
 	"time"
 )
@@ -15,9 +14,8 @@ func Ping(addresses []string, timeout time.Duration) (err error) {
 		}
 		if conn != nil {
 			defer conn.Close()
-			log.Printf("%% Notice: tcp %s opened\n", address)
 			return nil
 		}
 	}
-	return nil
+	return err
 }

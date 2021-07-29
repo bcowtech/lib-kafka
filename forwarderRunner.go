@@ -1,17 +1,15 @@
 package kafka
 
-import "log"
-
 type ForwarderRunner struct {
 	handle *Forwarder
 }
 
 func (r *ForwarderRunner) Start() {
-	log.Println("Started")
+	logger.Println("Started")
 }
 
 func (r *ForwarderRunner) Stop() {
-	log.Println("Stopping")
+	logger.Println("Stopping")
 	r.handle.Close()
-	log.Println("Stopped")
+	logger.Println("Stopped")
 }

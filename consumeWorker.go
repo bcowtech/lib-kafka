@@ -9,7 +9,7 @@ import (
 var _ MessageHandleProc = StopRecursiveForwardUnhandledMessageHandler
 
 func StopRecursiveForwardUnhandledMessageHandler(worker *ConsumeWorker, message *Message) {
-	panic("invalid forward; it might be recursive forward message to unhandledMessageHandler")
+	logger.Fatal("invalid forward; it might be recursive forward message to unhandledMessageHandler")
 }
 
 type ConsumeWorker struct {

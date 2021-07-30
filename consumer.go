@@ -36,19 +36,16 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 		return fmt.Errorf("the Consumer is running")
 	}
 
-	{
-		// ping address
-		var conf = c.ConfigMap
-		v, _ := conf.Get(KAFKA_CONF_BOOTSTRAP_SERVERS, nil)
-		if v != nil {
-			bootstrapServers := v.(string)
-			addrs := strings.Split(bootstrapServers, ",")
-			err := internal.Ping(addrs, c.PingTimeout)
-			if err != nil {
-				return err
-			}
+	var err error
+	defer func() {
+		if err != nil {
+			c.locker.Lock(
+				func() {
+					c.running = false
+					c.disposed = true
+				})
 		}
-	}
+	}()
 
 	c.locker.Lock(
 		func() {
@@ -56,8 +53,23 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 			c.running = true
 		})
 
+	{
+		// ping address
+		var conf = c.ConfigMap
+		v, _ := conf.Get(KAFKA_CONF_BOOTSTRAP_SERVERS, nil)
+		if v != nil {
+			bootstrapServers := v.(string)
+			addrs := strings.Split(bootstrapServers, ",")
+			err = internal.Ping(addrs, c.PingTimeout)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	for _, topic := range topics {
-		consumer, err := kafka.NewConsumer(c.ConfigMap)
+		var consumer *kafka.Consumer
+		consumer, err = kafka.NewConsumer(c.ConfigMap)
 		if err != nil {
 			return err
 		}

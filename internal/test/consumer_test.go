@@ -34,7 +34,7 @@ func TestConsumer(t *testing.T) {
 	select {
 	case <-ctx.Done():
 		t.Logf("Consumer stopping")
-		c.Stop()
+		c.Close()
 		return
 	}
 }

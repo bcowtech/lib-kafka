@@ -63,7 +63,7 @@ func TestConsumer_WithInvalidConfig(t *testing.T) {
 			t.Errorf("assert Consumer.disposed expect '%v', got '%v'", expectedDisposed, c.disposed)
 		}
 	}
-	c.Stop()
+	c.Close()
 }
 
 func TestConsumer_Well(t *testing.T) {
@@ -92,11 +92,11 @@ func TestConsumer_Well(t *testing.T) {
 	}
 	t.Logf("%+v", err)
 
-	c.Stop()
+	c.Close()
 	err = c.Subscribe([]string{"gotest1", "gotest2"}, nil)
 	if err == nil {
 		t.Fatal("Expected Subscribe() to fail")
 	}
 	t.Logf("%s", err)
-	c.Stop()
+	c.Close()
 }

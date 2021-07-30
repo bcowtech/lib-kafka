@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -14,6 +15,9 @@ type Producer struct {
 	errorHandler   ErrorHandleProc
 	flushTimeoutMs int
 	pingTimeout    time.Duration
+
+	locker   internal.Locker
+	disposed bool
 }
 
 func NewProducer(opt *ProducerOption) (*Producer, error) {
@@ -63,6 +67,17 @@ func (p *Producer) WriteMessageWithTimeout(message *Message, deliveryChan chan E
 }
 
 func (p *Producer) Close() {
+	if p.disposed {
+		return
+	}
+
+	defer func() {
+		p.locker.Lock(
+			func() {
+				p.disposed = true
+			})
+	}()
+
 	var (
 		h = p.handle
 	)
@@ -71,6 +86,10 @@ func (p *Producer) Close() {
 }
 
 func (p *Producer) writeMessageWithTimeout(message *Message, deliveryChan chan Event, timeoutMs int) error {
+	if p.disposed {
+		return fmt.Errorf("the Producer has been disposed")
+	}
+
 	var (
 		h = p.handle
 	)

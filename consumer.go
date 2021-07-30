@@ -185,7 +185,7 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 	return nil
 }
 
-func (c *Consumer) Stop() {
+func (c *Consumer) Close() {
 	if c.disposed {
 		return
 	}

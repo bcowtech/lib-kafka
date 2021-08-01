@@ -9,6 +9,7 @@ import (
 
 const (
 	KAFKA_CONF_BOOTSTRAP_SERVERS = "bootstrap.servers"
+	KAFKA_CONF_GROUP_ID          = "group.id"
 
 	LOGGER_PREFIX string = "[bcowtech/lib-kafka] "
 

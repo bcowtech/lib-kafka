@@ -3,6 +3,7 @@ package kafka
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bcowtech/lib-kafka/internal"
@@ -16,6 +17,7 @@ type Producer struct {
 	flushTimeoutMs int
 	pingTimeout    time.Duration
 
+	wg       sync.WaitGroup
 	locker   internal.Locker
 	disposed bool
 }
@@ -78,17 +80,17 @@ func (p *Producer) Close() {
 			})
 	}()
 
-	var (
-		h = p.handle
-	)
-
-	h.Close()
+	p.wg.Wait()
+	p.handle.Close()
 }
 
 func (p *Producer) writeMessageWithTimeout(message *Message, deliveryChan chan Event, timeoutMs int) error {
 	if p.disposed {
 		return fmt.Errorf("the Producer has been disposed")
 	}
+
+	p.wg.Add(1)
+	defer p.wg.Done()
 
 	var (
 		h = p.handle

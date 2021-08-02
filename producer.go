@@ -18,7 +18,7 @@ type Producer struct {
 	pingTimeout    time.Duration
 
 	wg       sync.WaitGroup
-	locker   internal.Locker
+	mutex    sync.Mutex
 	disposed bool
 }
 
@@ -73,11 +73,10 @@ func (p *Producer) Close() {
 		return
 	}
 
+	p.mutex.Lock()
 	defer func() {
-		p.locker.Lock(
-			func() {
-				p.disposed = true
-			})
+		p.disposed = true
+		p.mutex.Unlock()
 	}()
 
 	p.wg.Wait()

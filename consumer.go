@@ -22,7 +22,7 @@ type Consumer struct {
 	stopChan  chan bool
 	wg        sync.WaitGroup
 
-	locker      internal.Locker
+	mutex       sync.Mutex
 	initialized bool
 	running     bool
 	disposed    bool
@@ -37,21 +37,16 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 	}
 
 	var err error
+	c.mutex.Lock()
 	defer func() {
 		if err != nil {
-			c.locker.Lock(
-				func() {
-					c.running = false
-					c.disposed = true
-				})
+			c.running = false
+			c.disposed = true
 		}
+		c.mutex.Unlock()
 	}()
-
-	c.locker.Lock(
-		func() {
-			c.init()
-			c.running = true
-		})
+	c.init()
+	c.running = true
 
 	{
 		// ping address
@@ -190,15 +185,14 @@ func (c *Consumer) Close() {
 		return
 	}
 
+	c.mutex.Lock()
 	defer func() {
-		c.locker.Lock(
-			func() {
-				c.running = false
-				c.disposed = true
-				// dispose
-				c.consumers = nil
-				c.stopChan = nil
-			})
+		c.running = false
+		c.disposed = true
+		// dispose
+		c.consumers = nil
+		c.stopChan = nil
+		c.mutex.Unlock()
 	}()
 
 	count := len(c.consumers)

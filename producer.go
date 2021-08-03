@@ -79,8 +79,8 @@ func (p *Producer) Close() {
 		p.mutex.Unlock()
 	}()
 
-	p.wg.Wait()
 	p.handle.Close()
+	p.wg.Wait()
 }
 
 func (p *Producer) writeMessageWithTimeout(message *Message, deliveryChan chan Event, timeoutMs int) error {

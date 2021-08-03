@@ -92,12 +92,11 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 
 		go func(consumer *kafka.Consumer, stopChan chan bool) {
 			c.wg.Add(1)
-			defer func() {
-				defer c.wg.Done()
+			defer c.wg.Done()
 
+			defer func() {
 				consumer.Unassign()
 				consumer.Unsubscribe()
-
 				consumer.Close()
 			}()
 

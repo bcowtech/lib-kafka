@@ -8,7 +8,7 @@ import (
 
 var _ MessageHandleProc = StopRecursiveForwardUnhandledMessageHandler
 
-func StopRecursiveForwardUnhandledMessageHandler(worker *ConsumeContext, message *Message) {
+func StopRecursiveForwardUnhandledMessageHandler(ctx *ConsumeContext, message *Message) {
 	logger.Fatal("invalid forward; it might be recursive forward message to unhandledMessageHandler")
 }
 

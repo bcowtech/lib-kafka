@@ -13,7 +13,7 @@ func TestConsumer(t *testing.T) {
 
 	c := &kafka.Consumer{
 		PollingTimeout: 30 * time.Millisecond,
-		MessageHandler: func(worker *kafka.ConsumeWorker, message *kafka.Message) {
+		MessageHandler: func(ctx *kafka.ConsumeContext, message *kafka.Message) {
 			t.Logf("Message on %s: %s: %s\n", message.TopicPartition, string(message.Key), string(message.Value))
 		},
 		ConfigMap: &kafka.ConfigMap{

@@ -31,7 +31,7 @@ type (
 	RebalanceCb           = kafka.RebalanceCb
 	TopicPartition        = kafka.TopicPartition
 
-	MessageHandleProc func(worker *ConsumeWorker, message *Message)
+	MessageHandleProc func(ctx *ConsumeContext, message *Message)
 	ErrorHandleProc   func(err kafka.Error) (disposed bool)
 )
 

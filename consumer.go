@@ -83,9 +83,9 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 
 	for _, consumer := range c.consumers {
 		var (
-			worker *ConsumeWorker
+			ctx *ConsumeContext
 		)
-		worker = &ConsumeWorker{
+		ctx = &ConsumeContext{
 			unhandledMessageHandler: c.UnhandledMessageHandler,
 			handle:                  consumer,
 		}
@@ -128,7 +128,7 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 						logger.Printf("%% Notice: Reached %v\n", e)
 
 					case *kafka.Message:
-						c.processMessage(worker, e)
+						c.processMessage(ctx, e)
 
 					case kafka.Error:
 						switch e.Code() {
@@ -221,10 +221,10 @@ func (c *Consumer) processKafkaError(err kafka.Error) (disposed bool) {
 	return false
 }
 
-func (c *Consumer) processMessage(worker *ConsumeWorker, message *kafka.Message) {
+func (c *Consumer) processMessage(ctx *ConsumeContext, message *kafka.Message) {
 	if c.MessageHandler != nil {
-		c.MessageHandler(worker, message)
+		c.MessageHandler(ctx, message)
 	} else {
-		worker.ForwardUnhandledMessage(message)
+		ctx.ForwardUnhandledMessage(message)
 	}
 }

@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -30,10 +29,10 @@ type Consumer struct {
 
 func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 	if c.disposed {
-		return fmt.Errorf("the Consumer has been disposed")
+		logger.Panic("the Consumer has been disposed")
 	}
 	if c.running {
-		return fmt.Errorf("the Consumer is running")
+		logger.Panic("the Consumer is running")
 	}
 
 	var err error

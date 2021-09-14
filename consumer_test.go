@@ -30,7 +30,7 @@ func TestConsumer_WithInvalidConfig(t *testing.T) {
 		PollingTimeout: 30 * time.Millisecond,
 		ConfigMap: &ConfigMap{
 			"group.id":                 "gotest",
-			"socket.timeout.ms":        10,
+			"socket.timeout.ms":        1000,
 			"session.timeout.ms":       10,
 			"enable.auto.offset.store": false, // permit StoreOffsets()
 		},
@@ -45,7 +45,7 @@ func TestConsumer_WithInvalidConfig(t *testing.T) {
 		PollingTimeout: 30 * time.Millisecond,
 		ConfigMap: &ConfigMap{
 			"group.id":           "gotest",
-			"socket.timeout.ms":  10,
+			"socket.timeout.ms":  1000,
 			"session.timeout.ms": 10,
 			"unknown_settings":   false, // unknown settings
 		},
@@ -66,7 +66,7 @@ func TestConsumer_WithInvalidConfig(t *testing.T) {
 	c.Close()
 }
 
-func TestConsumer_Well(t *testing.T) {
+func TestConsumer_PreventStartAnotherWhenRunning(t *testing.T) {
 	var (
 		c   *Consumer
 		err error
@@ -76,7 +76,7 @@ func TestConsumer_Well(t *testing.T) {
 		PollingTimeout: 30 * time.Millisecond,
 		ConfigMap: &ConfigMap{
 			"group.id":                 "gotest",
-			"socket.timeout.ms":        10,
+			"socket.timeout.ms":        1000,
 			"session.timeout.ms":       10,
 			"enable.auto.offset.store": false, // permit StoreOffsets()
 		},
@@ -86,13 +86,53 @@ func TestConsumer_Well(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 	t.Logf("Consumer %+v", c)
+
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Fatal("Expected Subscribe() to fail")
+		}
+	}()
+	// should throw Consumer is running error
 	err = c.Subscribe([]string{"gotest1", "gotest2"}, nil)
-	if err == nil {
-		t.Fatal("Expected Subscribe() to fail")
+	if err != nil {
+		t.Fatalf("%s", err)
 	}
 	t.Logf("%+v", err)
 
 	c.Close()
+}
+
+func TestConsumer_PreventStartAnotherWhenDisposed(t *testing.T) {
+	var (
+		c   *Consumer
+		err error
+	)
+
+	c = &Consumer{
+		PollingTimeout: 30 * time.Millisecond,
+		ConfigMap: &ConfigMap{
+			"group.id":                 "gotest",
+			"socket.timeout.ms":        1000,
+			"session.timeout.ms":       10,
+			"enable.auto.offset.store": false, // permit StoreOffsets()
+		},
+	}
+	err = c.Subscribe([]string{"gotest1", "gotest2", "gotest3"}, nil)
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+	t.Logf("Consumer %+v", c)
+	c.Close()
+
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Fatal("Expected Subscribe() to fail")
+		}
+	}()
+
+	// should throw the Consumer has been disposed
 	err = c.Subscribe([]string{"gotest1", "gotest2"}, nil)
 	if err == nil {
 		t.Fatal("Expected Subscribe() to fail")

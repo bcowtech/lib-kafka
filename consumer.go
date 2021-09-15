@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -25,11 +26,15 @@ type Consumer struct {
 	initialized bool
 	running     bool
 	disposed    bool
+	abandoned   bool
 }
 
 func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 	if c.disposed {
 		logger.Panic("the Consumer has been disposed")
+	}
+	if c.abandoned {
+		logger.Panic("the Consumer has been termimated")
 	}
 	if c.running {
 		logger.Panic("the Consumer is running")
@@ -94,6 +99,11 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 			defer c.wg.Done()
 
 			defer func() {
+				err := recover()
+				if err != nil {
+					c.abandoned = true
+					logger.Fatalf("%v", err)
+				}
 				consumer.Unassign()
 				consumer.Unsubscribe()
 				consumer.Close()
@@ -133,8 +143,16 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 						switch e.Code() {
 						case kafka.ErrUnknownTopic, kafka.ErrUnknownTopicOrPart:
 							if !c.processKafkaError(e) {
-								logger.Fatalf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
+								panic(fmt.Sprintf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e))
 							}
+
+						case kafka.ErrAllBrokersDown,
+							kafka.ErrFail,
+							kafka.ErrResolve,
+							kafka.ErrCritSysResource,
+							kafka.ErrFs,
+							kafka.ErrBadMsg:
+							panic(fmt.Sprintf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e))
 
 						/* NOTE: https://github.com/edenhill/librdkafka/issues/64
 						Currently the only error codes signaled through the error_cb are:
@@ -148,21 +166,10 @@ func (c *Consumer) Subscribe(topics []string, rebalanceCb RebalanceCb) error {
 						I guess you could treat all but .._TRANSPORT as fatal.
 						*/
 						case kafka.ErrTransport:
-							if !c.processKafkaError(e) {
-								logger.Printf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
-							}
-							continue
-						case kafka.ErrAllBrokersDown,
-							kafka.ErrFail,
-							kafka.ErrResolve,
-							kafka.ErrCritSysResource,
-							kafka.ErrFs,
-							kafka.ErrBadMsg:
-							logger.Fatalf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
-
+							fallthrough
 						default:
 							if !c.processKafkaError(e) {
-								logger.Printf("%% Error: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
+								logger.Printf("%% Notice: (%#v) %+v: %v\n", e.Code(), e.Code(), e)
 							}
 							return
 						}
